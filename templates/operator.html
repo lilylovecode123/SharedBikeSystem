@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Manager The System</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script type="text/javascript" src="{{url_for('static', filename='js/jquery-3.3.1.min.js')}}" ></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-kQtW33rZJAHjgefvhyyzcGF3C5TFyBQBA13V1RKPf4uH+bwyzQxZ6CmMZHmNBEfJ" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.min.js" integrity="sha384-PsUw7Xwds7x08Ew3exXhqzbhuEYmA2xnwc8BuD6SEr+UmEHlX8/MCltYEodzWA4u" crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" href="/static/style/base_layout.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-uWxY/CJNBR+1zjPWmfnSnVxwRheevXITnMqoEIeG1LJrdI0GlVs/9cVSyPYXdcSF" crossorigin="anonymous">
+</head>
+<body>
+<div class="text-danger fs-1 fw-bold" style="text-align:center">Current Bicycle Information</div>
+<div class="container">
+    <table class="table table-hover table-striped table-light table-bordered align-middle">
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#addNewBike" >Add A New Bike Info</button>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick="logout();">Log Out</button>
+        </div>
+        <script>
+            function logout(){
+                if (confirm('Do you want to log out?')){
+                    window.location.href = "/"
+                }
+            }
+        </script>
+        <br>
+        <!-- bootstrap example from https://getbootstrap.com/docs/5.1/content/tables/#vertical-alignment-->
+        <thead class="thread-light justify-content-center" style="text-align:center">
+            <tr>
+                <th scope = "col" class="justify-content-center">Bike ID</th>
+                <th scope = "col" class="justify-content-center">Brand</th>
+                <th scope = "col" class="justify-content-center">Latitude</th>
+                <th scope = "col" class="justify-content-center">Longitude</th>
+                <th scope = "col" class="justify-content-center">Condition</th>
+                <th scope = "col" class="justify-content-center">Status</th>
+                <th scope = "col" class="justify-content-center">Operation</th>
+            </tr>
+        </thead>
+        <tbody class="justify-content-center" style="text-align:center">
+        {% for bike in bikes %}
+            <tr>
+                <td class="justify-content-center" >{{ bike.id }}</td>
+                <td class="justify-content-center" >{{ bike.brand }}</td>
+                <td class="justify-content-center" >{{ bike.latitude }}</td>
+                <td class="justify-content-center" >{{ bike.longitude }}</td>
+                <td class="justify-content-center">{{ bike.condition }}</td>
+                <td class="justify-content-center">{{ bike.status }}</td>
+                <td>
+                    <div class="d-grid gap-2 d-md-flex justify-content-center">
+                        <button type="button" class="btn btn btn-info" data-bs-toggle="modal" data-bs-target="#editBikeInfo{{ bike.id }}">Edit</button>
+                        <a href = "/remove/{{ bike.id }}" class="btn btn-danger" method="POST">Remove</a>
+                    </div>
+                </td>
+            </tr>
+            <!-- update bike information-->
+            <!-- bootstrap code example from https://getbootstrap.com/docs/5.1/components/modal/-->
+            <div class="modal fade" id="editBikeInfo{{ bike.id }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <div class="text-danger fs-5 fw-bold" style="text-align:center">Bike ID: {{ bike.id }}</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" ariSa-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <form action="{{url_for("edit")}}" method="POST">
+                      <div class="mb-3">
+                        <label  class="col-form-label">Brand:</label>
+                        <select class="form-select" aria-label="Default select example" name="brand" id ="brand2" value="{{ bike.brand }}">
+                        <option selected> Choose Bike Brand:</option>
+                        <option value="Aima">Aima</option>
+                        <option value="Xiaoniu">Xiaoniu</option>
+                        <option value="Jieante">Jieante</option>
+                        <option value="Meilida">Meilida</option>
+                        <option value="Feige">Feige</option>
+                        <option value="Amini">Amini</option>
+                        </select>
+                      </div>
+                      <div class="mb-3">
+                        <label  class="col-form-label">Latitude:</label>
+                        <input type="text" class="form-control" name="latitude"  id="latitude2" value="{{ bike.latitude }}">
+                      </div>
+                      <div class="mb-3">
+                        <label  class="col-form-label">Longitude:</label>
+                        <input type="text" class="form-control" name="longitude"  id ="longitude2" value="{{ bike.longitude }}">
+                      </div>
+                      <div class="mb-3">
+                        <label  class="col-form-label">Condition:</label>
+                        <select class="form-select" aria-label="Default select example" name="condition" id="condition2" value="{{ bike.condition }}" >
+                        <option selected value="{{ bike.condition }}">{{ bike.condition }}</option>
+                            {% if bike.condition == "Need Fixing" %}
+                                <option value="Good">Good</option>
+                            {% else %}
+                                <option value="Need Fixing">Need Fixing</option>
+                            {% endif %}
+                        </select>
+                      </div>
+                     <div class="mb-3">
+                        <label  class="col-form-label">Status:</label>
+                        <select class="form-select" aria-label="Default select example", name="status" id ="status2" value="{{ bike.status }}" >
+                        <option selected value="{{ bike.status }}">{{ bike.status }}</option>
+                            {% if bike.status == "Unavailable" %}
+                                <option value="Available">Available</option>
+                            {% else %}
+                                <option value="Unavailable">Unavailable</option>
+                            {% endif %}
+                        </select>
+                     </div>
+                      <div class="mb-3">
+                        <label  hidden class="col-form-label">ID:</label>
+                        <input hidden type="text" class="form-control" name="id"  id="bikeId2" value="{{ bike.id }}">
+                      </div>
+                      <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="sumbit" class="btn btn-info" onclick = "return true;">Confirm</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+                  </div>
+              </div>
+        {% endfor %}
+        </tbody>
+        <script>
+                function checkLengthForUpdate(){
+                    var bikeId = document.getElementById("bikeId2");
+                    console.log("bikeID:", bikeId)
+                    return false
+                    var bikeLat = document.getElementById("latitude2").value;
+                    console.log(bikeId)
+                    console.log(bikeLat)
+                    return false
+                    var bikeLat = document.getElementById("latitude2").value;
+                    var bikeLng = document.getElementById("longitude2").value;
+                    var bikeBrand = document.getElementById("brand2").value;
+                    var check = true
+                    console.log(bikeId)
+                    return false
+                    if (bikeLng.length == 0 ){
+                        alert("The Bike Longitude should not be empty!")
+                        check = false
+                    }
+                    if (bikeLat.length == 0 ){
+                        alert("The Bike Latitude should not be empty!")
+                        check = false
+                    }
+                    if (!parseFloat(bikeLng) ){
+                        alert("The Bike Longitude should be float type!")
+                        check = false
+                    }
+                    if (!parseFloat(bikeLat) ){
+                        alert("The Bike Latitude should be float type!")
+                        check = false
+                    }
+                    if (bikeBrand == "Choose Bike Brand:"){
+
+                        alert("The Bike Brand should not be empty!")
+                        check = false
+                    }
+                    if ( (bikeLat.length != 0) && (parseFloat(bikeLng)) && (parseFloat(bikeLat)) && (bikeBrand != "Choose Bike Brand:")){
+                        check = true
+                    }
+                return false
+            }
+        </script>
+    </table>
+</div>
+<!-- add a new bike information-->
+<!-- code example from https://getbootstrap.com/docs/5.1/components/modal/-->
+<div class="modal fade" id="addNewBike" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="text-danger fs-5 fw-bold" style="text-align:center">Add A New Bike Info</div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" ariSa-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form action="{{url_for("insert")}}"  method="POST">
+          <div class="mb-3">
+            <label  class="col-form-label">Bike ID:</label>
+            <input type="text" class="form-control" id="bikeId" name="bikeid" >
+          </div>
+          <div class="mb-3">
+            <label  class="col-form-label">Brand:</label>
+            <select class="form-select" aria-label="Default select example" name="brand" id="brand">
+                <option selected>Choose Bike Brand:</option>
+                <option value="Aima">Aima</option>
+                <option value="Xiaoniu">Xiaoniu</option>
+                <option value="Jieante">Jieante</option>
+                <option value="Meilida">Meilida</option>
+                <option value="Feige">Feige</option>
+                <option value="Amini">Amini</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label  class="col-form-label">Latitude:</label>
+            <input type="text" class="form-control" name="latitude" id="latitude">
+          </div>
+          <div class="mb-3">
+            <label  class="col-form-label">Longitude:</label>
+            <input type="text" class="form-control" name="longitude" id="longitude">
+          </div>
+
+          <div class="mb-3">
+            <label  class="col-form-label">Condition:</label>
+            <select class="form-select" aria-label="Default select example" name="condition">
+                <option selected value="Good">Good</option>
+                <option value="Need Fixing">Need Fixing</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label  class="col-form-label">Status:</label>
+            <select class="form-select" aria-label="Default select example" name="status" id="status">
+                <option selected value="Available">Available</option>
+                <option value="Unavailable">Unavailable</option>
+            </select>
+          </div>
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button type="sumbit" class="btn btn-primary", onclick="return checkLengthForAdd();">Confirm</button>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+          </div>
+          <script>
+                function checkLengthForAdd(){
+                var bikeId = document.getElementById("bikeId").value;
+                var bikeLat = document.getElementById("latitude").value;
+                var bikeLng = document.getElementById("longitude").value;
+                var bikeBrand = document.getElementById("brand").value;
+                var check = true;
+                var bikeIdCheck = false;
+                $.ajaxSettings.async = false;
+                $.post('/checkBikeIdValid', {bikeId: bikeId}, function (data, status) {
+                    bikeIdCheck = data["check"]
+                    console.log(bikeIdCheck)
+                })
+                if (! bikeIdCheck){
+                    alert("The Bike Id alrady exists!")
+                    check = false
+                }
+
+                if (bikeId.length < 6 || bikeId.length > 10){
+                    alert("The length of Bike ID should be between  6 and 10!")
+                    console.log("Bike",bikeId)
+                    check = false
+                }
+                console.log("Bike",check)
+                if (!parseInt((bikeId))){
+                    alert("The Bike ID should be numbers!")
+                    check = false
+                }
+                if (bikeLng.length == 0 ){
+                    alert("The Bike Longitude should not be empty!")
+                    check = false
+                }
+                if (bikeLat.length == 0 ){
+                    alert("The Bike Latitude should not be empty!")
+                    check = false
+                }
+                if (!parseFloat(bikeLng) ){
+                    alert("The Bike Longitude should be float type!")
+                    check = false
+                }
+                if (!parseFloat(bikeLat) ){
+                    alert("The Bike Latitude should be float type!")
+                    check = false
+                }
+                if (bikeBrand == "Choose Bike Brand:"){
+                    alert("The Bike Brand should not be empty!")
+                    check = false
+                }
+                if (bikeIdCheck && (6<=bikeId.length) && ( bikeId.length <=10) && (bikeLng.length != 0) && (bikeLat.length != 0) && (parseFloat(bikeLng)) && (parseFloat(bikeLat)) && (bikeBrand != "Choose Bike Brand:")){
+                    check = true
+                }
+                console.log("final",check)
+                return check
+            }
+          </script>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

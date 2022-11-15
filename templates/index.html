@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Shared Bike System</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script type="text/javascript" src="{{url_for('static', filename='js/jquery-3.3.1.min.js')}}" ></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-kQtW33rZJAHjgefvhyyzcGF3C5TFyBQBA13V1RKPf4uH+bwyzQxZ6CmMZHmNBEfJ" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.min.js" integrity="sha384-PsUw7Xwds7x08Ew3exXhqzbhuEYmA2xnwc8BuD6SEr+UmEHlX8/MCltYEodzWA4u" crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" href="/static/style/base_layout.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-uWxY/CJNBR+1zjPWmfnSnVxwRheevXITnMqoEIeG1LJrdI0GlVs/9cVSyPYXdcSF" crossorigin="anonymous">
+</head>
+<body>
+<br>
+<div class="text-primary fs-2 fw-bold" style="text-align:center">Welcome To Share Bike System</div>
+    <div class="login">
+    <form id="login" method="post", action="#" >
+        <input class="username" type="text" name="username" id="username" placeholder="Username">
+		<br><br>
+        <input class="password" type="password" name="password" id="password" placeholder="Password">
+        <br><br>
+        <select class="select" type="select" name="user">
+            <option selected>Choose Your Login Identity:</option>
+            <option value="1">Rider</option>
+            <option value="2">Operator</option>
+            <option value="3">Manager</option>
+        </select>
+        <br><br>
+        <button  type="submit" class="btn btn-danger" style="width:299px;height:40px" data-bs-toggle="modal"  method="post"> Log In </button>
+        <br><br>
+        <button type="button" class="btn btn-primary" style="width:299px;height:40px" data-bs-toggle="modal"  data-bs-target="#register" >Register For A New User</button>
+		<br><br>
+    </form>
+    </div>
+    <div>
+        <!-- Register Page -->
+        <!-- code example form https://getbootstrap.com/docs/5.1/components/modal/-->
+        <div class="modal fade" id="register" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h4 class="modal-title" id="exampleModalLabel">Register Page</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                    <div class="modal-body">
+                        <form class="register_form" action="{{url_for("register")}}"  method="POST">
+                            <div class="mb-3">
+                                <label class="fs-5" >Username:</label>
+                                <label class="fs-10 fw-lighter" >(Username must more than 6 characters.)</label>
+                                <input type="text" class="form-control" id="username2" name="username">
+                            </div>
+                            <div class="mb-3">
+                                <label class="fs-5">Password:</label>
+                                <label class="fs-10 fw-lighter" >(Password must more than 6 characters and include one UPPER LETTER.)</label>
+                                <input type="password" class="form-control" id="password2" name="password">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="sumbit" class="btn btn-info" onclick = "return checkUserInfo()">Register</button>
+                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            function checkUserInfo(){
+                var username = document.getElementById("username2").value;
+                console.log("username", username)
+                var password = document.getElementById("password2").value;
+                var checkUsernameNotExist = false
+                var checkUsernameLength = false
+                var checkPasswordValid = false
+                $.ajaxSettings.async = false;
+                $.post('/checkUserInfo', {username: username, password: password}, function (data, status) {
+                    checkUsernameNotExist = data["checkUsernameNotExist"]
+                    checkUsernameLength = data["checkUsernameLength"]
+                    checkPasswordValid = data["checkPasswordValid"]
+                })
+                if (! checkUsernameNotExist){
+                    alert("Username already exists!")
+                }
+                if (! checkUsernameLength){
+                    alert("Username must more than 6 characters!")
+                }
+                if (! checkPasswordValid){
+                    alert("Password must more than 6 characters and include one UPPER LETTER!")
+                }
+                return checkUsernameNotExist && checkUsernameLength && checkPasswordValid
+            }
+        </script>
+    </div>
+</body>
+</html>

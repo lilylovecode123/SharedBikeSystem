@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <!--- !!! SET TITLE !!!-->
+    <!-- css start -->
+    <!-- leaflet css cdn -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+      integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+      crossorigin=""
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"
+    />
+    <!-- bootstrap css cdn -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-uWxY/CJNBR+1zjPWmfnSnVxwRheevXITnMqoEIeG1LJrdI0GlVs/9cVSyPYXdcSF"
+      crossorigin="anonymous"
+    />
+     <!--   JQuery-->
+    <script type="text/javascript" src="{{url_for('static', filename='js/jquery-3.3.1.min.js')}}" ></script>
+    <!-- custom css -->
+    <style>
+      #mapid {
+        width: 70vw;
+        height: 100vh;
+        display: inline-block;
+      }
+      #details-section {
+        width: 30vw;
+        border: 5px solid rgb(47, 179, 179);
+      }
+      .bikePopup {
+        font-size: small;
+      }
+      .bikeInfoSection {
+        display: none;
+      }
+      #timerSection {
+        display: none;
+      }
+      #summarySection {
+        display: none;
+      }
+      .leaflet-routing-container-hide {
+        display: none;
+      }
+    </style>
+    <!-- css end -->
+    <!-- js start -->
+    <!-- leaflet cdn -->
+    <script
+      src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+      integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+      crossorigin=""
+    ></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <!-- bootstrap cdn -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-kQtW33rZJAHjgefvhyyzcGF3C5TFyBQBA13V1RKPf4uH+bwyzQxZ6CmMZHmNBEfJ"
+      crossorigin="anonymous"
+    ></script>
+    <!-- js end -->
+  </head>
+  <body>
+    <div id="container" class="d-flex">
+      <!-- map container start -->
+      <div id="mapid">
+        <div
+          id="mapShader"
+          class="
+            leaflet-top leaflet-left
+            w-100
+            h-100
+            align-items-center
+            justify-content-center
+          "
+          style="background-color: grey; opacity: 0.5; display: flex"
+        >
+          <span class="h2 text-light">Click on map to set your location</span>
+        </div>
+        <div class="leaflet-top leaflet-right">
+          <button
+            id="mapNavigateButton"
+            class="btn btn-primary m-3 align-items-center"
+            style="pointer-events: auto"
+            onclick="getLocation()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              class="bi bi-geo-alt"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"
+              />
+              <path
+                d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"
+              />
+            </svg>
+            <span class="m-1">Navigate to my current location</span>
+          </button>
+        </div>
+      </div>
+      <!-- map container end -->
+      <!-- main section start -->
+      <div id="details-section">
+        <div class="row m-0 p-3">
+          <div class="userInfoSection">
+            <div
+              class="col-12 mb-2 text-center"
+              style="border-bottom: 2px solid rgb(47, 179, 179)"
+            >
+              <h2 id="username" class="d-flex justify-content-between">
+                {{username}} <button class="btn btn-primary" onclick="logout()" >Logout</button>
+              </h2>
+            </div>
+            <div class="col-12 mb-2">
+              <div class="row">
+                <div class="col-8">
+                  <h3>$ <span id="totalAmount">10</span></h3>
+                </div>
+                <div class="col-4">
+                  <button class="btn btn-primary w-100" onclick="topUp();">
+                    Top Up
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bikeInfoSection">
+            <div
+              class="col-12 pt-5 text-center"
+              style="border-bottom: 2px solid rgb(47, 179, 179)"
+            >
+              <h2>Bike Info</h2>
+            </div>
+            <div class="card font-weight-normal mt-3 p-2">
+              <div class="row">
+                <div class="row mt-2 mb-2">
+                  <div class="col-6">Bike ID</div>
+                  <div id="bikeID" class="col-6 text-center"></div>
+                </div>
+                <div class="row mb-2">
+                  <div class="col-6">Condition</div>
+                  <div id="bikeCondition" class="col-6 text-center"></div>
+                </div>
+                <div class="row mb-2">
+                  <div class="col-6">Status</div>
+                  <div id="bikeStatus" class="col-6 text-center"></div>
+                </div>
+                <div class="row mb-2">
+                  <div class="col-6">Distance to bike</div>
+                  <div id="bikeDistance" class="col-6 text-center"></div>
+                </div>
+                <!-- <div class="row"> -->
+                <div class="col-12">
+                  <button id="bikeRent" class="btn btn-primary w-100">
+                    RENT
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="timerSection">
+            <div
+              class="col-12 pt-5 text-center"
+              style="border-bottom: 2px solid rgb(47, 179, 179)"
+            >
+              <h2>Timer</h2>
+            </div>
+            <div class="card font-weight-normal mt-3 p-2">
+              <div class="row">
+                <div id="timer" class="col-12 text-center mt-2 mb-2">
+                  00:00:00
+                </div>
+                <!-- <div class="row"> -->
+                <div class="col-12">
+                  <button id="stopBtn" class="btn btn-success w-100">
+                    END
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="summarySection">
+            <div
+              class="col-12 pt-5 text-center"
+              style="border-bottom: 2px solid rgb(47, 179, 179)"
+            >
+              <h2>Summary</h2>
+            </div>
+            <div class="card font-weight-normal mt-3 p-2">
+              <div class="row">
+                <div class="row mt-2 mb-2">
+                  <div class="col-6">Total Duration</div>
+                  <div id="summaryDuration" class="col-6 text-center"></div>
+                </div>
+                <div class="row mb-2">
+                  <div class="col-6">Total Distance</div>
+                  <div id="summaryDistance" class="col-6 text-center"></div>
+                </div>
+                <div class="row mb-2">
+                  <div class="col-6">Total Charges</div>
+                  <div id="summaryCharges" class="col-6 text-center"></div>
+                </div>
+                <div class="col-12">
+                  <button
+                    id="summaryReport"
+                    class="btn btn-danger w-100"
+                    onclick="summaryReport()"
+                  >
+                    REPORT
+                  </button>
+                </div>
+                <div class="col-12">
+                  <button
+                    id="summaryReport"
+                    class="btn btn-secondary w-100"
+                    onclick="document.getElementById('summarySection').style.display = 'none'"
+                  >
+                    DISMISS
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- main section end -->
+    </div>
+    <script>
+      // default map location
+      allCaseMessage = '{{ username|tojson }}';
+      let currentUser = eval('(' + allCaseMessage + ')');
+      let balance = 0;
+       $.ajaxSettings.async = false;
+        $.post('/getBalance', {userid: currentUser}, function (data, status) {
+              balance = data["money"].toFixed(1)
+              totalAmount.innerHTML = balance
+            })
+      let mapLat = 54.607868;
+      let mapLong = -5.926437;
+
+      // initialize map
+      let mymap = L.map('mapid').setView([mapLat, mapLong], 13);
+      L.tileLayer(
+        'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
+        {
+          attribution:
+            'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+          maxZoom: 18,
+          minZoom: 1,
+          id: 'mapbox/streets-v11',
+          tileSize: 512,
+          zoomOffset: -1,
+          accessToken:
+            'pk.eyJ1IjoiZGVzbW9uZHNpbWNvZGUiLCJhIjoiY2tobGN6MXE3MGhhdTJ3bnVtajFmajYzaSJ9._9On6bxiBV3iml1xQngkXw',
+        }
+      ).addTo(mymap);
+
+      // bike icon (display the status of the bike)
+      let bikeGreen = L.icon({
+        iconUrl: '../static/images/bike_green.png',
+
+        iconSize: [32, 32],
+        iconAnchor: [22, 30],
+        popupAnchor: [-3, -24],
+      });
+
+      let bikeRed = L.icon({
+        iconUrl: '../static/images/bike_red.png',
+
+        iconSize: [32, 32],
+        iconAnchor: [22, 30],
+        popupAnchor: [-3, -24],
+      });
+
+      // VARS
+      //--------------------
+
+      // bikes data
+      // !!! backend replace bikes data
+      let bikes = []
+
+      let bikesOnMap = {}; // bikes data showing on map
+
+      let isSet = false; // is user's location set
+      let userLoc; // user's location
+      let userLocLat;
+      let userLocLng;
+
+      let Interval; // global scope interval function
+      let hours = 00;
+      let minutes = 00;
+      let seconds = 00;
+
+      let summaryRideDistance; // the total distance(KM) from the start of the route to the end of the route
+      let bikeRoute; // route of the bike
+      let removeRoute; // a global scope function to remove the routes after user finish renting the bike
+      //--------------------
+
+      // FUNCTIONS START
+      //--------------------
+
+      // get user's location
+      function getLocation() {
+        if (navigator.geolocation) {
+          let userLoc = navigator.geolocation.getCurrentPosition(
+            showPosition,
+            showError
+          );
+        } else {
+          alert('Geolocation is not supported by this browser.');
+        }
+      }
+
+      // show error if fail to get user's position (getLocation function)
+      function showError(error) {
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            document.getElementById('mapNavigateButton').style.display =
+              'initial';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            alert('Location information is unavailable.');
+            break;
+          case error.TIMEOUT:
+            alert('The request to get user location timed out.');
+            break;
+          case error.UNKNOWN_ERROR:
+            alert('An unknown error occurred.');
+            break;
+        }
+      }
+
+      // show user's current position and pan as the center of the map
+      function showPosition(position) {
+        mapLat = position.coords.latitude;
+        mapLong = position.coords.longitude;
+        showBikes(mapLat, mapLong); //!!! remove if not necessary (*add lat lan)
+        mymap.panTo([mapLat, mapLong]);
+        if (!isSet) {
+          document.getElementById('mapShader').style.display = 'none';
+          userLoc = new L.marker([mapLat, mapLong], { draggable: 'true' });
+          userLoc.on('dragend', function (event) {
+            userLoc = event.target;
+            let position = userLoc.getLatLng();
+            userLoc.setLatLng(new L.LatLng(position.lat, position.lng), {
+              draggable: 'true',
+            });
+            mymap.panTo(new L.LatLng(position.lat, position.lng));
+            userLocLat = position.lat;
+            userLocLng = position.lng;
+          });
+          if (!isSet) {
+            mymap.addLayer(userLoc);
+            isSet = true;
+          }
+        } else {
+          let newLatLng = new L.LatLng(mapLat, mapLong);
+          userLoc.setLatLng(newLatLng);
+        }
+      }
+
+      // calculate distance between user's location and the cliked bike's location
+      function getDistance(from, to) {
+        from = from.getLatLng();
+        to = to.getLatLng();
+        return from.distanceTo(to).toFixed(0) / 1000;
+      }
+
+      // user clicks the bike icon on map, display the bike details
+      function onBikeClick(e, bike) {
+        document
+          .querySelectorAll('.bikeInfoSection')
+          .forEach((a) => (a.style.display = 'initial'));
+        document.getElementById('bikeID').innerHTML = bike.id;
+        document.getElementById('bikeCondition').innerHTML = bike.condition;
+        document.getElementById('bikeStatus').innerHTML = bike.status;
+        document.getElementById('bikeRent').onclick = function () {
+          rent(currentUser, bike.id);
+        };
+        if (isSet) {
+          //console.log(e.target.getLatLng())
+          document.getElementById('bikeDistance').innerHTML =
+            getDistance(e.target, userLoc) + ' KM';
+        }
+      }
+
+      // user clicks on map to set self location accurately
+      function onMapClick(e) {
+        if (!isSet) {
+          document.getElementById('mapShader').style.display = 'none';
+          userLoc = new L.marker(e.latlng, { draggable: 'true' });
+          userLoc.on('dragend', function (event) {
+            showBikes(mapLat, mapLong); //!!! remove if not necessary (*add lat lan)
+            userLoc = event.target;
+            let position = userLoc.getLatLng();
+            userLoc.setLatLng(new L.LatLng(position.lat, position.lng), {
+              draggable: 'true',
+            });
+            mymap.panTo(new L.LatLng(position.lat, position.lng));
+            userLocLat = position.lat;
+            userLocLng = position.lng;
+          });
+          if (!isSet) {
+            mymap.addLayer(userLoc);
+            isSet = true;
+          }
+        }
+      }
+
+      // each time user sets a new location, refresh nearby bikes
+      function showBikes(mapLat, mapLong) {
+        // !!! get new bike datas from backend
+        console.log(mapLat)
+        console.log(mapLong)
+        $.ajaxSettings.async = false;
+        $.post('/getlnglat', {lat: mapLat, lng: mapLong}, function (data, status) {
+          console.log(data.length)
+          bikes = data;
+        })
+        // remove all possible bike layers
+
+        mymap.eachLayer(function (layer) {
+          console.log(layer);
+          if (layer['_latlng'] != undefined) {
+            layer.remove();
+          }
+        });
+        bikesOnMap = {}; // clear all bikes on map
+        for (let i = 0; i < bikes.length; i++) {
+          let bike = bikes[i];
+          if (bike.status == 'Available') {
+            console.log("forloop")
+            bikesOnMap[bikes[i].id] = L.marker([bike.latitude, bike.longitude], {
+              icon: bikeGreen,
+            })
+              .on('click', function (e) {
+                onBikeClick(e, bike);
+              })
+              .bindPopup(
+                '<center><div class="bikePopup"><button class="btn btn-primary w-100" onclick="rent(currentUser, \'' +
+                  bike.id +
+                  '\')">RENT</button></div></center>'
+              );
+            mymap.addLayer(bikesOnMap[bikes[i].id]);
+          } else {
+            bikesOnMap[bikes[i].id] = L.marker([bike.latitude, bike.longitude], {
+              icon: bikeRed,
+            })
+              .on('click', function (e) {
+                onBikeClick(e, bike);
+              })
+              .bindPopup(
+                '<center><div class="bikePopup"><button class="btn btn-secondary w-100" onclick="rent(currentUser, \'' +
+                  bike.id +
+                  '\')" disabled>RENT</button></div></center>'
+              );
+            mymap.addLayer(bikesOnMap[bikes[i].id]);
+          }
+        }
+      }
+
+      // user top up wallet balance
+      function topUp() {
+        $.ajaxSettings.async = false;
+        $.post('/getBalance', {userid: currentUser}, function (data, status) {
+          balance = data["money"]
+        })
+        let topUpAmount = prompt('How much do you want to top up?', 1);
+        console.log(topUpAmount, typeof topUpAmount);
+        console.log(parseInt(topUpAmount));
+        topUpAmount = parseInt(topUpAmount);
+        let totalAmount = document.getElementById('totalAmount');
+        if (isNaN(topUpAmount)) {
+          alert('Please insert a valid number!');
+        } else {
+          if (topUpAmount <= 0) {
+            alert('Amount cannot be 0!');
+          } else {
+            totalAmount.innerHTML =
+                    (balance + topUpAmount).toFixed(1);
+            $.ajaxSettings.async = false;
+            $.post('/updateBalance', {money: balance + topUpAmount, userid: currentUser}, function (data, status) {
+              console.log(balance + topUpAmount)
+            })
+            alert('Top up success!');
+            // !!! update user wallet
+          }
+        }
+      }
+
+      // user rent bike
+
+      function rent(currentUser, bikeId) {
+        var balance;
+        var bikeid = "";
+        var bikeStatus = "Available"
+        $.ajaxSettings.async = false;
+        $.post('/getBalance', {userid: currentUser}, function (data, status) {
+          balance = data["money"]
+          bikeid = data["bikeId"]
+          //bikeStatus = data["bikeStatus"]
+        })
+        console.log("bikeid", bikeid)
+        if (bikeid != "") {
+          alert('You only can rent one bike right now: current bike ID: #' + bikeId);
+        } else {
+          if (bikeStatus == "Unavailable") {
+            alert("Bike #" + bikeId + " is unavailable now! Please try another bike.");
+            return false
+          } else {
+            if (balance < 5) {
+              alert('Low on balance. Please top up, minimum rent balance is $5.');
+            } else {
+              if (confirm('Are you sure you want to rent ' + bikeId + ' ?')) {
+                $.ajaxSettings.async = false;
+                $.post('/rent', {bikeId: bikeId, userid: currentUser}, function (data, status) {
+                  console("rent")
+                })
+                console.log('USER RENT ' + bikeId);
+
+                document.getElementById('timerSection').style.display = 'initial';
+                document.getElementById('bikeRent').style.display = 'none';
+                bikesOnMap[bikeId].setIcon(bikeRed);
+                bikesOnMap[bikeId].setPopupContent(
+                        '<center><div class="bikePopup">USER IS RIDING</div></center>'
+                );
+                document.getElementById('bikeStatus').innerHTML = 'Unavailable';
+                startTimer();
+                mymap.removeLayer(userLoc);
+                document.getElementById('stopBtn').onclick = function () {
+                  endRent(bikeId);
+                };
+                if (true) {
+                  // !!!update start
+
+                  for (let i = 0; i < bikes.length; i++) {
+                    if (bikes[i].id == bikeId) {
+                      bikes[i].status = 'Unavailable';
+                    }
+                  }
+                    // !!! update end
+
+                  var newLat;
+                  var newLng;
+                  $.ajaxSettings.async = false;
+                  $.post('/getRandomDestination', {bikeId: bikeId}, function (data, status) {
+                    newLat = parseFloat(data["newlat"])
+                    newLng = parseFloat(data["newlng"])
+                    //bikeStatus = data["bikeStatus"]
+                  })
+                  console.log(newLat)
+                  console.log(newLng)
+
+
+                  bikeRoute = L.Routing.control({
+                    waypoints: [
+                      L.latLng(
+                              bikesOnMap[bikeId]._latlng.lat,
+                              bikesOnMap[bikeId]._latlng.lng
+                      ),
+                      L.latLng(newLat, newLng), //!!! HARDCODE END POINT
+                    ],
+                    lineOptions: {
+                      styles: [
+                        {
+                          color: 'blue',
+                          opacity: 1, //!!! TO HIDE:0 TO SHOW:1
+                          weight: 2,
+                        },
+                      ],
+                    },
+                    createMarker: function () {
+                      return null;
+                    },
+                    show: false,
+                  })
+                          .on('routesfound', function (e) {
+                            let routes = e.routes;
+                            let speed = 500; //change bike moving speed here
+                            summaryRideDistance = (routes[0].summary.totalDistance / 1000).toFixed(4) ;
+                            routes[0].coordinates.forEach(function (coord, i) {
+                              setTimeout(function () {
+                                bikesOnMap[bikeId].setLatLng([coord.lat, coord.lng]);
+                              }, speed * i);
+                            });
+                          })
+                          .addTo(mymap);
+                  removeRoute = function () {
+                    mymap.removeControl(bikeRoute);
+                  };
+
+                  // !!!update start
+                  isSet = false;
+                  // !!!update end
+
+
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // a interval timer after user starts to rent bike
+      function startTimer() {
+        let displaySeconds;
+        let displayMinutes;
+        let displayHours;
+        Interval = setInterval(function () {
+          seconds += 1;
+          if (seconds == 60) {
+            minutes += 1;
+            seconds = 00;
+          }
+          if (minutes == 60) {
+            hours += 1;
+            minutes = 00;
+          }
+          if (seconds <= 9) {
+            displaySeconds = '0' + seconds;
+          } else {
+            displaySeconds = seconds;
+          }
+          if (minutes <= 9) {
+            displayMinutes = '0' + minutes;
+          } else {
+            displayMinutes = minutes;
+          }
+          if (hours <= 9) {
+            displayHours = '0' + hours;
+          } else {
+            displayHours = hours;
+          }
+          let timer =
+            displayHours + ':' + displayMinutes + ':' + displaySeconds;
+          document.getElementById('timer').innerHTML = timer;
+        }, 1000);
+      }
+
+
+      //!!!update last start
+      //This function takes in latitude and longitude of two location and returns the distance between them as the crow flies (in km)
+      function calcCrow(lat1, lon1, lat2, lon2) {
+        var R = 6371; // km
+        var dLat = toRad(lat2 - lat1);
+        var dLon = toRad(lon2 - lon1);
+        var lat1 = toRad(lat1);
+        var lat2 = toRad(lat2);
+
+        var a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.sin(dLon / 2) *
+            Math.sin(dLon / 2) *
+            Math.cos(lat1) *
+            Math.cos(lat2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        var d = R * c;
+        return d;
+      }
+
+      // Converts numeric degrees to radians
+      function toRad(Value) {
+        return (Value * Math.PI) / 180;
+      }
+      //!!!update last end
+
+
+
+      // user end rent after finish using the bike
+      var reportBikeId = ""
+      function endRent(bikeId) {
+        console.log(bikeId)
+        if (confirm('End destination?')) {
+          bikesOnMap[bikeId].setIcon(bikeGreen);
+          bikesOnMap[bikeId].setPopupContent(
+            '<center><div class="bikePopup"><button class="btn btn-primary w-100" onclick="rent(currentUser, \'' +
+              bikeId +
+              '\')">RENT</button></div></center>'
+          );
+          document.getElementById('bikeStatus').innerHTML = 'Available';
+          removeRoute();
+          var startLat;
+          var starLng;
+          $.ajaxSettings.async = false;
+          $.post('/getBikeInitialLatAndLng', {bikeId:bikeId}, function (data, status) {
+                startLat = data["lat"]
+                starLng =  data["lng"]
+                console.log(startLat)
+          })
+
+
+
+          let endLocationLat = bikesOnMap[bikeId]._latlng.lat;
+          let endLocationLng = bikesOnMap[bikeId]._latlng.lng;
+          summaryRideDistance = calcCrow(startLat, starLng, endLocationLat, endLocationLng).toFixed(4)
+          //new update
+          for (let i = 0; i < bikes.length; i++) {
+            if (bikes[i].id == bikeId) {
+              bikes[i].status = 'Available';
+            }
+          }
+
+          // !!! update backend (new bike location and ride duration)
+          $.ajaxSettings.async = false;
+          $.post('/updateBikeLocation', {bikeId:bikeId, lat: endLocationLat, lng: endLocationLng }, function (data, status) {
+                console.log("update location finished")
+          })
+          clearInterval(Interval);
+          alert(
+            'Time used: ' +
+              hours +
+              ' hours ' +
+              minutes +
+              ' minutes ' +
+              seconds +
+              ' seconds.'
+          );
+          var time = 3600 * hours + 60 * minutes + seconds;
+          console.log("time ", time)
+          var charges = 0;
+          console.log(time)
+          $.ajaxSettings.async = false;
+          $.post('/calculate', {time: time, userid: currentUser, distance: summaryRideDistance }, function (data, status) {
+                balance = data["money"].toFixed(1)
+                charges = data["charge"]
+                reportBikeId = data["bikeId"]
+                console.log("balance", time)
+                totalAmount.innerHTML = balance
+          })
+          console.log(reportBikeId)
+          document.getElementById('summaryDuration').innerHTML =
+            hours + ' hours ' + minutes + ' minutes ' + seconds + ' seconds.';
+
+          document.getElementById('summaryDistance').innerHTML =
+            summaryRideDistance + ' KM';
+          document.getElementById('summaryCharges').innerHTML = '$' + charges;
+          hours = 00;
+          minutes = 00;
+          seconds = 00;
+          document.getElementById('timer').innerHTML = '00:00:00';
+          document.getElementById('timerSection').style.display = 'none';
+          document.getElementById('bikeRent').style.display = 'initial';
+          document
+            .querySelectorAll('.bikeInfoSection')
+            .forEach((a) => (a.style.display = 'none'));
+          document.getElementById('summarySection').style.display = 'initial';
+          isSet = false;
+        }
+      }
+
+      //log out function
+      function logout(){
+        var bikeid = ""
+        if (confirm('Do you want to log out?')){
+            $.ajaxSettings.async = false;
+            $.post('/logout', {userid: currentUser}, function(data, status) {
+                  bikeid = data["bikeId"]
+                })
+            console.log(bikeid)
+            if (bikeid != ""){
+                alert('Please End your riding before logout!')
+            }else{
+                alert('You log out');
+                window.location.href = "/"
+            }
+        }
+      }
+
+      // a report button at summary section
+      function summaryReport() {
+        console.log(reportBikeId)
+        if (confirm('Are you sure you want to report bike defective?')) {
+          $.ajaxSettings.async = false;
+          $.post('/report', {bikeId: reportBikeId}, function (data, status) {
+              bikeid = ""
+
+          })
+          alert('Report submitted successfully');
+          bikesOnMap[reportBikeId].setIcon(bikeRed);
+          document.getElementById('bikeCondition').innerHTML = 'Need Fixing';
+          document.getElementById('bikeStatus').innerHTML = 'Unavailable';
+          for (let i = 0; i < bikes.length; i++) {
+            if (bikes[i].id == reportBikeId) {
+              bikes[i].status = 'Unavailable';
+              bikes[i].condition = 'Need Fixing';
+            }
+          }
+
+        }
+      }
+      //--------------------
+      // FUNCTIONS END
+
+      // INIT FUNCTION
+      //--------------------
+
+      getLocation();
+
+      mymap.on('click', onMapClick);
+
+      // loop all bikes and display on map
+      for (let i = 0; i < bikes.length; i++) {
+        let bike = bikes[i];
+        if (bike.status == 'Available') {
+          bikesOnMap[bikes[i].id] = L.marker([bike.lat, bike.lng], {
+            icon: bikeGreen,
+          })
+            .on('click', function (e) {
+              onBikeClick(e, bike);
+            })
+            .bindPopup(
+              '<center><div class="bikePopup"><button class="btn btn-primary w-100" onclick="rent(currentUser, \'' +
+                bike.id +
+                '\')">RENT</button></div></center>'
+            );
+          mymap.addLayer(bikesOnMap[bikes[i].id]);
+        } else {
+          bikesOnMap[bikes[i].id] = L.marker([bike.lat, bike.lng], {
+            icon: bikeRed,
+          })
+            .on('click', function (e) {
+              onBikeClick(e, bike);
+            })
+            .bindPopup(
+              '<center><div class="bikePopup"><button class="btn btn-secondary w-100" onclick="rent(currentUser, \'' +
+                bike.id +
+                '\')" disabled>RENT</button></div></center>'
+            );
+          mymap.addLayer(bikesOnMap[bikes[i].id]);
+        }
+      }
+
+      //--------------------
+    </script>
+  </body>
+</html>
